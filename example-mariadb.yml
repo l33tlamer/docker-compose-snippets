@@ -1,0 +1,44 @@
+#
+# Example docker-compose for mariadb (mysql)
+#
+
+version: '3'
+
+services:
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:10.9.5
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - monocker.enable=true
+      - diun.enable=true
+    environment:
+      - TZ=Europe/Berlin
+      - MYSQL_ROOT_PASSWORD=mariadb
+      - MYSQL_USER=mariadb
+      - MYSQL_PASSWORD=mariadb
+      - MYSQL_DATABASE=mariadb
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./mariadb:/var/lib/mysql
+      # init.sql for first startup can be supplied like this:
+      #- ./required/mariadb-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin --user=$${MYSQL_USER} --password=$${MYSQL_PASSWORD} --host=localhost ping"]
+      interval: 30s
+      start_period: 30s
+      timeout: 10s
+      retries: 3
+    #mem_limit: 40m
+    #memswap_limit: 40m
+    #mem_reservation: 20m
+    #cpu_shares: 1024
+    #cpus: 0.5
+    #logging:
+    #  driver: json-file
+    #  options:
+    #    max-size: 5m
