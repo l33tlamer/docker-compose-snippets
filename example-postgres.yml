@@ -1,0 +1,81 @@
+#
+# Template docker-compose.yml for postgresql with pgbouncer
+#
+
+version: '3'
+
+services:
+
+  service-pgbouncer:
+    container_name: service-pgbouncer
+    hostname: service-pgbouncer
+    image: edoburu/pgbouncer:1.18.0
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - monocker.enable=true
+      - diun.enable=true
+      - diun.metadata.homepage=https://github.com/edoburu/docker-pgbouncer
+    networks:
+      - service
+    #ports:
+    #  - 5432:5432
+    depends_on:
+      service-postgres:
+        condition: service_healthy
+    environment:
+      - TZ=Europe/Berlin
+      - DB_HOST=service-postgres
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - AUTH_TYPE=plain
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d $${DB_NAME} -U $${DB_USER} -h localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    #mem_limit: 40m
+    #memswap_limit: 40m
+    #mem_reservation: 20m
+    #cpu_shares: 1024
+    #cpus: 0.5
+    #logging:
+    #  driver: "none"
+
+
+  service-postgres:
+    container_name: service-postgres
+    hostname: service-postgres
+    image: postgres:15.2-alpine3.17
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - monocker.enable=true
+      - diun.enable=true
+      - diun.metadata.homepage=https://www.postgresql.org/docs/release/
+    networks:
+      - service
+    #ports:
+    #  - 5432:5432
+    environment:
+      - TZ=Europe/Berlin
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+      # startup init.sql scripts can be provided like this:
+      #- ./postgres-init:/docker-entrypoint-initdb.d:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER} -h localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    #mem_limit: 40m
+    #memswap_limit: 40m
+    #mem_reservation: 20m
+    #cpu_shares: 1024
+    #cpus: 0.5
+    #logging:
+    #  driver: "none"
