@@ -1,0 +1,35 @@
+#
+# Template docker-compose.yml for redis
+#
+
+version: '3'
+
+services:
+
+  redis:
+    container_name: redis
+    image: redis:7.0.8-alpine
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - monocker.enable=true
+      - diun.enable=true
+    #networks:
+    #  - servicename
+    #ports:
+    #  - 6379:6379
+    command: redis-server --save 30 1 --loglevel warning
+    volumes:
+      - ./redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    #mem_limit: 40m
+    #memswap_limit: 40m
+    #mem_reservation: 20m
+    #cpu_shares: 1024
+    #cpus: 0.5
+    #logging:
+    #  driver: "none"
