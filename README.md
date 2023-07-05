@@ -12,7 +12,7 @@ These are NOT meant to be just copy/pasted and run. They need to be adjusted to 
 
 Most of these have my default labels on them, they are for the following tools:
 
-* https://github.com/willfarrell/docker-autoheal (i made a modified version with Pushover notification support)
+* https://github.com/willfarrell/docker-autoheal (i made a modified version with Pushover notification support)  
   https://github.com/users/l33tlamer/packages/container/package/autoheal-pover
 
 * https://github.com/crazy-max/diun
