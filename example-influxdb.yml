@@ -1,0 +1,48 @@
+version: "3.3"
+
+networks:
+  dockernet:
+    external: true
+
+services:
+
+  influxdb:
+    container_name: influxdb
+    hostname: influxdb
+    image: influxdb:1.8.10-alpine
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - monocker.enable=true
+      - diun.enable=true
+    ports:
+      - 8086:8086
+    environment:
+      - TZ=Europe/Berlin
+      #- PUID=1000
+      #- PGID=1000
+      - INFLUXDB_DB=influx
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=password
+      - INFLUXDB_USER=user
+      - INFLUXDB_USER_PASSWORD=password
+      - INFLUXDB_REPORTING_DISABLED=true
+    volumes:
+      - ./influxdb:/var/lib/influxdb
+    # have not used influxdb v1 in a long time, dont remember the exact healthcheck
+    #healthcheck:
+    #  test: "wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost:8086 || exit 1"
+    #  test: "curl --fail -s http://localhost:8086/ || exit 1"
+    #  interval: 30s
+    #  timeout: 10s
+    #  retries: 3
+    #mem_limit: 40m
+    #memswap_limit: 40m
+    #mem_reservation: 20m
+    #cpu_shares: 1024
+    #cpus: 0.5
+    #logging:
+    #  driver: json-file
+    #  options:
+    #    max-size: 5m
