@@ -1,5 +1,5 @@
 #
-# Example compose for a new service, fill in the blanks etc
+# Template docker-compose.yml for a new service, fill in the blanks etc
 #
 # autoheal commented for the start until healthcheck is confirmed working
 # healthcheck commands, pick one that can be made working on the specific image
