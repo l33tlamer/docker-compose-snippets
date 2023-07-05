@@ -1,0 +1,45 @@
+#
+# Template docker-compose.yml for minio s3
+#
+
+version: '3'
+
+services:
+  minio:
+    container_name: minio
+    hostname: minio
+    image: minio/minio:RELEASE.2023-03-24T21-41-23Z
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - monocker.enable=true
+      - diun.enable=true
+    networks:
+      - service
+    ports:
+      - 9000:9000   # webui & API
+      - 9001:9001   # console
+    environment:
+      - TZ=Europe/Berlin
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio
+      #- MINIO_BROWSER_REDIRECT_URL=
+      #- MINIO_SERVER_URL=
+    volumes:
+      - ./minio:/data
+    entrypoint: sh
+    command: -c 'minio server /data --console-address ":9001"'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    #mem_limit: 40m
+    #memswap_limit: 40m
+    #mem_reservation: 20m
+    #cpu_shares: 1024
+    #cpus: 0.5
+    #logging:
+    #  driver: json-file
+    #  options:
+    #    max-size: 5m
