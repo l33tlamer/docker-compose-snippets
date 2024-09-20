@@ -1,0 +1,76 @@
+###
+### Template compose.yaml for MongoDB plus MongoDB-Express
+###
+### Note: MongoDB versions 5+ require AVX-capable CPU. Last version without it is mongo:4.4.21
+###
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongo:6.0.7
+    restart: unless-stopped
+    networks:
+      - mongodb
+    ports:
+      - 27017:27017
+    environment:
+      - "MONGO_INITDB_ROOT_USERNAME=root"
+      - "MONGO_INITDB_ROOT_PASSWORD=mongodb"
+      - "MONGO_INITDB_DATABASE=mongodb"
+    volumes:
+    ### script.js file for first startup can be supplied like this:
+    # - ./script.js:/docker-entrypoint-initdb.d/script.js
+      - mongodb:/data/db
+    healthcheck:
+      test: mongo --norc --quiet --host=localhost --eval "db.runCommand('ping')" || exit 1
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 40m
+  # memswap_limit: 40m
+  # mem_reservation: 20m
+  # cpus: 0.5
+
+  mongodb-express:
+    container_name: mongodb-express
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - mongodb
+    ports:
+      - 8081:8081
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      ### MongoDB connection
+      - "ME_CONFIG_MONGODB_SERVER=mongodb"
+      - "ME_CONFIG_MONGODB_PORT=27017"
+      - "ME_CONFIG_MONGODB_ADMINUSERNAME=root"
+      - "ME_CONFIG_MONGODB_ADMINPASSWORD=mongodb"
+      ### MongoDB-Express WebUI
+      - "ME_CONFIG_BASICAUTH=true"
+      - "ME_CONFIG_BASICAUTH_USERNAME=mongodb"
+      - "ME_CONFIG_BASICAUTH_PASSWORD=mongodb"
+      - "ME_CONFIG_MONGODB_ENABLE_ADMIN=true"
+      - "ME_CONFIG_OPTIONS_EDITORTHEME=dracula"
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider http://localhost:8081/status || exit 1"
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 100m
+  # memswap_limit: 100m
+  # mem_reservation: 50m
+  # cpus: 0.5
+  
+volumes:
+  mongodb:
+    name: mongodb
+
+networks:
+  mongodb:
+    name: mongodb
