@@ -1,0 +1,36 @@
+###
+### Template compose.yaml for KeyDB (Redis replacement)
+###
+services:
+  keydb:
+    container_name: keydb
+    image: eqalpha/keydb:x86_64_v6.3.4
+    restart: unless-stopped
+    networks:
+      - keydb
+    environment:
+      - "TZ=Europe/Berlin"
+      - "PUID=1000"
+      - "PGID=1000"
+    command: keydb-server /etc/keydb/keydb.conf --appendonly yes --server-threads 4 --active-replica no
+    volumes:
+      - keydb:/data
+    healthcheck:
+      test: ["CMD", "keydb-cli", "ping"]
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 40m
+  # memswap_limit: 40m
+  # mem_reservation: 20m
+  # cpus: 0.5
+
+volumes:
+  keydb:
+    name: keydb
+
+networks:
+  keydb:
+    name: keydb
