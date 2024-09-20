@@ -1,0 +1,46 @@
+###
+### Template compose.yaml for MariaDB (MySQL replacement)
+###
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb:11.4.2-noble
+    restart: unless-stopped
+    networks:
+      - mariadb
+    ports:
+      - 3306:3306
+    environment:
+      - TZ=Europe/Berlin
+      - MARIADB_ROOT_PASSWORD=mariadb
+      - MARIADB_USER=mariadb
+      - MARIADB_PASSWORD=mariadb
+      - MARIADB_DATABASE=mariadb
+    volumes:
+      - mariadb:/var/lib/mysql
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ### folder for custom conf files can be supplied like this:
+    # - ./conf:/etc/mysql/conf.d
+    ### init.sql file for first startup can be supplied like this:
+    # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin --user=$${MARIADB_USER} --password=$${MARIADB_PASSWORD} --host=localhost ping"]
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 500mm
+  # memswap_limit: 500m
+  # mem_reservation: 150m
+  # cpus: 0.5
+
+volumes:
+  mariadb:
+    name: mariadb
+
+networks:
+  mariadb:
+    name: mariadb
