@@ -1,0 +1,38 @@
+###
+### Template compose.yaml for Redis Stack/Insight
+###
+services:
+  redis-stack:
+    container_name: redis-stack
+    image: redis/redis-stack:6.2.6-v7           ### contains both Redis Stack and Redis Insight
+  # image: redis/redis-stack-server:6.2.6-v7    ### provides Redis Stack but not Redis Insight
+    restart: unless-stopped
+    networks:
+      - redis-stack
+    ports:
+      - 6379:6379   ### Redis port
+      - 6380:8001   ### Redis Insight WebUI
+    environment:
+      - "REDIS_ARGS=--save 30 1 --loglevel warning"
+      - "REDISTIMESERIES_ARGS=RETENTION_POLICY=20"
+    volumes:
+      - redis-stack:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 40m
+  # memswap_limit: 40m
+  # mem_reservation: 20m
+  # cpus: 0.5
+
+volumes:
+  redis-stack:
+    name: redis-stack
+
+networks:
+  redis-stack:
+    name: redis-stack
