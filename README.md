@@ -1,4 +1,4 @@
-# docker-compose-snippets
+# Docker Compose snippets
 
 This is nothing but just a collection of **Docker Compose** snippets for services i use often.
 
