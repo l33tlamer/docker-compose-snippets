@@ -1,19 +1,13 @@
 ###
-### Template compose.yaml for a new service, fill in the blanks
+### Template compose.yaml for a new service
 ###
-networks:
-  service:
-    name: service
-
 services:
-
-  service:
-    container_name: service
-    hostname: service
+  example:
+    container_name: example
     image: REPLACEME:tag
     restart: unless-stopped
     networks:
-      - dockernet
+      - example
     ports:
       - 8080:80
     environment:
@@ -22,6 +16,7 @@ services:
       - PGID=1000
     volumes:
       - ./host/path:/container/path
+      - example:/container/path
   # healthcheck:
   #   test: "wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost:3000 || exit 1"
   #   test: "curl --fail -s http://localhost:5000/ || exit 1"
@@ -38,3 +33,11 @@ services:
   # memswap_limit: 40m
   # mem_reservation: 20m
   # cpus: 0.5
+
+volumes:
+  example:
+    name: example
+
+networks:
+  example:
+    name: example
