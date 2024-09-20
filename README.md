@@ -6,4 +6,6 @@ As example, for a new selfhosted project i need a **MariaDB** container, or **Po
 
 Most of these have been set up to have working healthchecks and i use autoheal to check those, automatically restart unhealthy containers and notify me when it happens.
 
-These are **NOT** meant to be just copy/pasted and run. They need to be adjusted to fit your own setup. **Basic Docker and Compose knowledge is required.**
+These are **NOT** meant to be just copy/pasted and run. They need to be adjusted to fit your own setup.
+
+**Basic Docker and Compose knowledge is required.**
