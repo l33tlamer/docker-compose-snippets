@@ -1,54 +1,40 @@
-#
-# Template docker-compose.yml for a new service, fill in the blanks etc
-#
-# autoheal commented for the start until healthcheck is confirmed working
-# healthcheck commands, pick one that can be made working on the specific image
-#
-
-version: "3.3"
-
+###
+### Template compose.yaml for a new service, fill in the blanks
+###
 networks:
-  dockernet:
-    external: true
+  service:
+    name: service
 
 services:
 
-  servicename:
-    container_name: servicename
-    hostname: servicename
-    image: 
+  service:
+    container_name: service
+    hostname: service
+    image: REPLACEME:tag
     restart: unless-stopped
-    labels:
-    # - autoheal=true
-      - monocker.enable=true
-      - diun.enable=true
-      - diun.metadata.homepage=https://github.com/
-      - logging=promtail 
-      - logging_jobname=containerlogs
     networks:
       - dockernet
     ports:
       - 8080:80
     environment:
       - TZ=Europe/Berlin
-    # - PUID=1000
-    # - PGID=1000
+      - PUID=1000
+      - PGID=1000
     volumes:
-      - ./host:/container
-    #healthcheck:
-    #  test: "wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost:80 || exit 1"
-    #  test: "curl --fail -s http://localhost:80/ || exit 1"
-    #  test: ['CMD-SHELL', 'nc -z 127.0.0.1 80 || exit 1']
-    #  test: ['CMD-SHELL', 'pgrep -x "node" || exit 1']
-    #  interval: 30s
-    #  timeout: 10s
-    #  retries: 3
-    #mem_limit: 40m
-    #memswap_limit: 40m
-    #mem_reservation: 20m
-    #cpu_shares: 1024
-    #cpus: 0.5
-    #logging:
-    #  driver: json-file
-    #  options:
-    #    max-size: 5m
+      - ./host/path:/container/path
+  # healthcheck:
+  #   test: "wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost:3000 || exit 1"
+  #   test: "curl --fail -s http://localhost:5000/ || exit 1"
+  #   test: curl --fail -s http://localhost:5984/_up | grep -Eo '\"status\":\"ok\"' || exit 1
+  #   test: ["CMD-SHELL", "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1"]
+  #   test: ['CMD-SHELL', 'nc -z 127.0.0.1 4822 || exit 1']
+  #   test: ['CMD-SHELL', 'pgrep -x "node" || exit 1']
+  #   start_period: 60s
+  #   start_interval: 30s
+  #   interval: 15s
+  #   timeout: 5s
+  #   retries: 3
+  # mem_limit: 40m
+  # memswap_limit: 40m
+  # mem_reservation: 20m
+  # cpus: 0.5
