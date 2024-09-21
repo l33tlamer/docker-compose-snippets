@@ -4,7 +4,7 @@
 ### Note: MongoDB versions 5+ require AVX-capable CPU. Last version without it is mongo:4.4.21
 ###
 services:
-  mongodb:
+  mongo:
     container_name: mongodb
     image: mongo:6.0.7
     restart: unless-stopped
@@ -14,7 +14,7 @@ services:
       - 27017:27017
     environment:
       - "MONGO_INITDB_ROOT_USERNAME=root"
-      - "MONGO_INITDB_ROOT_PASSWORD=mongodb"
+      - "MONGO_INITDB_ROOT_PASSWORD=password"
       - "MONGO_INITDB_DATABASE=mongodb"
     volumes:
     ### script.js file for first startup can be supplied like this:
@@ -41,19 +41,21 @@ services:
     ports:
       - 8081:8081
     depends_on:
-      mongodb:
+      mongo:
         condition: service_healthy
     environment:
       ### MongoDB connection
-      - "ME_CONFIG_MONGODB_SERVER=mongodb"
+      - "ME_CONFIG_MONGODB_SERVER=mongo"
       - "ME_CONFIG_MONGODB_PORT=27017"
       - "ME_CONFIG_MONGODB_ADMINUSERNAME=root"
-      - "ME_CONFIG_MONGODB_ADMINPASSWORD=mongodb"
+      - "ME_CONFIG_MONGODB_ADMINPASSWORD=password"
       ### MongoDB-Express WebUI
-      - "ME_CONFIG_BASICAUTH=true"
-      - "ME_CONFIG_BASICAUTH_USERNAME=mongodb"
-      - "ME_CONFIG_BASICAUTH_PASSWORD=mongodb"
       - "ME_CONFIG_MONGODB_ENABLE_ADMIN=true"
+      - "ME_CONFIG_MONGODB_AUTH_USERNAME=root"
+      - "ME_CONFIG_MONGODB_AUTH_PASSWORD=password"
+      - "ME_CONFIG_BASICAUTH=false"
+      - "ME_CONFIG_BASICAUTH_USERNAME=user"
+      - "ME_CONFIG_BASICAUTH_PASSWORD=password"
       - "ME_CONFIG_OPTIONS_EDITORTHEME=dracula"
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider http://localhost:8081/status || exit 1"
