@@ -1,0 +1,79 @@
+###
+### Template compose.yaml for PostgreSQL with local Backup
+###
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16.4-alpine3.20
+    restart: unless-stopped
+    networks:
+      - postgres
+    ports:
+      - 5432:5432
+    environment:
+      - TZ=Europe/Berlin
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ### folder for init scripts can be supplied like this:
+    # - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER} -h localhost"]
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 100m
+  # memswap_limit: 100m
+  # mem_reservation: 75m
+  # cpus: 0.5
+
+  postgres-backup:
+    container_name: postgres-backup
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    restart: unless-stopped
+    networks:
+      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - TZ=Europe/Berlin
+      ### required: postgres connection
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      ### postgres options
+      - POSTGRES_EXTRA_OPTS=-Z1
+      ### backup options
+      - SCHEDULE=@daily
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      ### webhooks
+    # - WEBHOOK_URL=
+    # - WEBHOOK_ERROR_URL=
+    # - WEBHOOK_PRE_BACKUP_URL=
+    # - WEBHOOK_POST_BACKUP_URL=
+    # - WEBHOOK_EXTRA_ARGS=
+    volumes:
+      - ./postgres-backups:/backups
+      ### optional hooks (error/pre-backup/post-backup)
+    # - ./hooks:/hooks
+  # mem_limit: 50m
+  # memswap_limit: 50m
+  # mem_reservation: 25m
+  # cpus: 0.5
+
+volumes:
+  postgres:
+    name: postgres
+
+networks:
+  postgres:
+    name: postgres
