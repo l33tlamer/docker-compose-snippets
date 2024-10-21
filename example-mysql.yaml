@@ -1,0 +1,46 @@
+###
+### Template compose.yaml for MySQL
+###
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:9.1.0
+    restart: unless-stopped
+    networks:
+      - mysql
+    ports:
+      - 3306:3306
+    environment:
+      - TZ=Europe/Berlin
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+      - MYSQL_DATABASE=mysql
+    volumes:
+      - mysql:/var/lib/mysql
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ### folder for custom conf files can be supplied like this:
+    # - ./conf:/etc/mysql/conf.d
+    ### init.sql file for first startup can be supplied like this:
+    # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin --user=$${MYSQL_USER} --password=$${MYSQL_PASSWORD} --host=localhost ping"]
+      start_period: 60s
+      start_interval: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 500mm
+  # memswap_limit: 500m
+  # mem_reservation: 150m
+  # cpus: 0.5
+
+volumes:
+  mysql:
+    name: mysql
+
+networks:
+  mysql:
+    name: mysql
