@@ -1,0 +1,138 @@
+networks:
+  authentik:
+    name: authentik
+
+services:
+  authentik-server:
+    container_name: authentik-server
+    image: ghcr.io/goauthentik/server:2024.8.3
+    restart: unless-stopped
+    networks:
+      - authentik
+    ports:
+      - 9000:9000   # HTTP WebUI (FIRST START use URL /if/flow/initial-setup/ for setup)
+      - 9443:9443   # HTTPS (self signed)
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-keydb:
+        condition: service_healthy
+    environment:
+      - TZ=Europe/Berlin
+      - PUID=1000
+      - PGID=1000
+      - AUTHENTIK_REDIS__HOST=authentik-keydb
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-postgres
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=authentik
+      ### generate your own secret, example 'openssl rand -base64 32'
+      - AUTHENTIK_SECRET_KEY=iJFf/2TCdhEgs5hBsfpvaI0YBnvF/H/BVNnfthxtdsEukBnaQJS27CuKXMN3g6KD
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=false
+      ### email settings (used for pw resets)
+      - AUTHENTIK_EMAIL__HOST=localhost
+      - AUTHENTIK_EMAIL__PORT=25
+      - AUTHENTIK_EMAIL__USERNAME=
+      - AUTHENTIK_EMAIL__PASSWORD=
+      - AUTHENTIK_EMAIL__FROM=authentik@localhost
+      - AUTHENTIK_EMAIL__USE_TLS=false
+      - AUTHENTIK_EMAIL__USE_SSL=false
+      - AUTHENTIK_EMAIL__TIMEOUT=15
+    command: server
+    volumes:
+      - ./media:/media
+      - ./custom-templates:/templates
+  # mem_limit: 750m
+  # memswap_limit: 750m
+  # mem_reservation: 250m
+  # cpus: 0.5
+
+  authentik-worker:
+    container_name: authentik-worker
+    hostname: authentik-worker
+    image: ghcr.io/goauthentik/server:2024.8.3
+    restart: unless-stopped
+    networks:
+      - authentik
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-keydb:
+        condition: service_healthy
+    environment:
+      - TZ=Europe/Berlin
+      - PUID=1000
+      - PGID=1000
+      - AUTHENTIK_REDIS__HOST=authentik-keydb
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-postgres
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=authentik
+      ### generate your own secret, example 'openssl rand -base64 32'
+      - AUTHENTIK_SECRET_KEY=iJFf/2TCdhEgs5hBsfpvaI0YBnvF/H/BVNnfthxtdsEukBnaQJS27CuKXMN3g6KD
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=false
+    user: root
+    command: worker
+    volumes:
+      - ./media:/media
+      - ./custom-templates:/templates
+      - ./certs:/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+  # mem_limit: 750m
+  # memswap_limit: 750m
+  # mem_reservation: 250m
+  # cpus: 0.5
+
+  authentik-postgres:
+    container_name: authentik-postgres
+    hostname: authentik-postgres
+    image: postgres:16.4-alpine3.20
+    restart: unless-stopped
+    networks:
+      - authentik
+    environment:
+      - TZ=Europe/Berlin
+      - POSTGRES_DB=authentik
+      - POSTGRES_USER=authentik
+      - POSTGRES_PASSWORD=authentik
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    ### startup init.sql scripts can be provided like this:
+    # - ./postgres-init:/docker-entrypoint-initdb.d:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER} -h localhost"]
+      start_period: 60s
+      start_interval: 15s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 150m
+  # memswap_limit: 150m
+  # mem_reservation: 50m
+  # cpus: 0.5
+
+  authentik-keydb:
+    container_name: authentik-keydb
+    hostname: authentik-keydb
+    image: eqalpha/keydb:x86_64_v6.3.4
+    restart: unless-stopped
+    networks:
+      - authentik
+    environment:
+      - TZ=Europe/Berlin
+      - PUID=1000
+      - PGID=1000
+    command: keydb-server /etc/keydb/keydb.conf --appendonly yes --server-threads 4 --active-replica no
+    volumes:
+      - ./keydb:/data
+    healthcheck:
+      test: ["CMD", "keydb-cli", "ping"]
+      start_period: 60s
+      start_interval: 15s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  # mem_limit: 100m
+  # memswap_limit: 100m
+  # mem_reservation: 25m
+  # cpus: 0.5
