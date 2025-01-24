@@ -1,0 +1,55 @@
+###
+### Template compose.yaml for A.R.M. (Automatic Ripping Machine)
+### with NVENC enabled
+###
+### https://github.com/automatic-ripping-machine/automatic-ripping-machine
+###
+### nVidia Container Toolkit needs to be installed on Docker host
+### https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+###
+### Create bind mounts on host before start, make sure owner matches
+### the vars ARM_UID and ARM_GID
+###
+### Make sure to follow the ARM documentation to map your disc drives
+###
+services:
+  arm-nvenc:
+    container_name: arm-nvenc
+    image: automaticrippingmachine/automatic-ripping-machine:latest
+    restart: unless-stopped
+    networks:
+      - arm-nvenc
+    ports:
+      - 8080:8080
+    environment:
+      - ARM_UID=1000
+      - ARM_GID=1000
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    privileged: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+  # devices:
+  #   - /dev/sr0:/dev/sr0
+  #   - /dev/sr1:/dev/sr1
+  #   - /dev/sr2:/dev/sr2
+  #   - /dev/sr3:/dev/sr3
+    volumes:
+      - ./config:/etc/arm/config
+      - ./arm:/home/arm
+      - ./logs:/home/arm/logs
+      - ./music:/home/arm/music
+      - ./media:/home/arm/media
+  # mem_limit: 40m
+  # memswap_limit: 40m
+  # mem_reservation: 20m
+  # cpus: 0.5
+
+networks:
+  arm-nvenc:
+    name: arm-nvenc
